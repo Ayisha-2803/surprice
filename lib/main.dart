@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'dart:math' as math;
+import 'home_screen.dart';
 
 void main() {
   runApp(const SurpriceApp());
@@ -57,17 +58,14 @@ class _SplashScreenState extends State<SplashScreen>
       vsync: this,
       duration: const Duration(milliseconds: 1400),
     );
-
     _fadeController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 800),
     );
-
     _pulseController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1800),
     )..repeat(reverse: true);
-
     _taglineController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 700),
@@ -76,30 +74,24 @@ class _SplashScreenState extends State<SplashScreen>
     _logoScale = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(parent: _logoController, curve: Curves.elasticOut),
     );
-
     _logoRotate = Tween<double>(begin: -0.3, end: 0.0).animate(
       CurvedAnimation(parent: _logoController, curve: Curves.easeOut),
     );
-
     _logoOpacity = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
         parent: _logoController,
         curve: const Interval(0.0, 0.4, curve: Curves.easeIn),
       ),
     );
-
     _bgFade = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(parent: _fadeController, curve: Curves.easeIn),
     );
-
     _pulse = Tween<double>(begin: 1.0, end: 1.08).animate(
       CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
     );
-
     _taglineFade = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(parent: _taglineController, curve: Curves.easeIn),
     );
-
     _taglineSlide = Tween<Offset>(
       begin: const Offset(0, 0.5),
       end: Offset.zero,
@@ -117,6 +109,18 @@ class _SplashScreenState extends State<SplashScreen>
     _logoController.forward();
     await Future.delayed(const Duration(milliseconds: 900));
     _taglineController.forward();
+    await Future.delayed(const Duration(milliseconds: 2000));
+    if (mounted) {
+      Navigator.of(context).pushReplacement(
+        PageRouteBuilder(
+          pageBuilder: (_, __, ___) => const HomeScreen(),
+          transitionDuration: const Duration(milliseconds: 800),
+          transitionsBuilder: (_, animation, __, child) {
+            return FadeTransition(opacity: animation, child: child);
+          },
+        ),
+      );
+    }
   }
 
   @override
@@ -142,7 +146,6 @@ class _SplashScreenState extends State<SplashScreen>
         builder: (context, child) {
           return Stack(
             children: [
-              // Background glow
               Opacity(
                 opacity: _bgFade.value,
                 child: Center(
@@ -161,13 +164,10 @@ class _SplashScreenState extends State<SplashScreen>
                   ),
                 ),
               ),
-
-              // Main content
               Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    // Logo
                     Opacity(
                       opacity: _logoOpacity.value,
                       child: Transform.scale(
@@ -178,10 +178,7 @@ class _SplashScreenState extends State<SplashScreen>
                         ),
                       ),
                     ),
-
                     const SizedBox(height: 28),
-
-                    // App name
                     Opacity(
                       opacity: _logoOpacity.value,
                       child: Transform.scale(
@@ -197,10 +194,7 @@ class _SplashScreenState extends State<SplashScreen>
                         ),
                       ),
                     ),
-
                     const SizedBox(height: 10),
-
-                    // Tagline
                     SlideTransition(
                       position: _taglineSlide,
                       child: FadeTransition(
@@ -219,8 +213,6 @@ class _SplashScreenState extends State<SplashScreen>
                   ],
                 ),
               ),
-
-              // Bottom version
               Positioned(
                 bottom: 48,
                 left: 0,
@@ -277,18 +269,20 @@ class LogoPainter extends CustomPainter {
     }
     hexPath.close();
 
-    // Glow
-    canvas.drawPath(hexPath, Paint()
-      ..color = const Color(0xFFE8C547).withOpacity(0.15)
-      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 12));
+    canvas.drawPath(
+      hexPath,
+      Paint()
+        ..color = const Color(0xFFE8C547).withOpacity(0.15)
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 12),
+    );
+    canvas.drawPath(
+      hexPath,
+      Paint()
+        ..color = const Color(0xFFE8C547)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1.5,
+    );
 
-    // Hex outline
-    canvas.drawPath(hexPath, Paint()
-      ..color = const Color(0xFFE8C547)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.5);
-
-    // Inner lines
     final linePaint = Paint()
       ..color = const Color(0xFFE8C547).withOpacity(0.3)
       ..strokeWidth = 0.8;
@@ -296,7 +290,6 @@ class LogoPainter extends CustomPainter {
     canvas.drawLine(points[1], points[4], linePaint);
     canvas.drawLine(points[2], points[5], linePaint);
 
-    // Lightning bolt
     final bs = size.width * 0.15;
     final bolt = Path()
       ..moveTo(cx + bs * 0.6, cy - bs * 1.2)
