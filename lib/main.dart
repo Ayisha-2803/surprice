@@ -1,122 +1,314 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'dart:math' as math;
 
 void main() {
-  runApp(const MyApp());
+  runApp(const SurpriceApp());
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class SurpriceApp extends StatelessWidget {
+  const SurpriceApp({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: 'Surprice',
+      debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // TRY THIS: Try running your application with "flutter run". You'll see
-        // the application has a purple toolbar. Then, without quitting the app,
-        // try changing the seedColor in the colorScheme below to Colors.green
-        // and then invoke "hot reload" (save your changes or press the "hot
-        // reload" button in a Flutter-supported IDE, or press "r" if you used
-        // the command line to start the app).
-        //
-        // Notice that the counter didn't reset back to zero; the application
-        // state is not lost during the reload. To reset the state, use hot
-        // restart instead.
-        //
-        // This works for code too, not just values: Most code changes can be
-        // tested with just a hot reload.
-        colorScheme: .fromSeed(seedColor: Colors.deepPurple),
+        scaffoldBackgroundColor: const Color(0xFF0A0A0E),
+        fontFamily: 'SF Pro Display',
       ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      home: const SplashScreen(),
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
-
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
-  final String title;
+class SplashScreen extends StatefulWidget {
+  const SplashScreen({super.key});
 
   @override
-  State<MyHomePage> createState() => _MyHomePageState();
+  State<SplashScreen> createState() => _SplashScreenState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
+class _SplashScreenState extends State<SplashScreen>
+    with TickerProviderStateMixin {
+  late AnimationController _logoController;
+  late AnimationController _fadeController;
+  late AnimationController _pulseController;
+  late AnimationController _taglineController;
 
-  void _incrementCounter() {
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
-    });
+  late Animation<double> _logoScale;
+  late Animation<double> _logoRotate;
+  late Animation<double> _logoOpacity;
+  late Animation<double> _bgFade;
+  late Animation<double> _pulse;
+  late Animation<double> _taglineFade;
+  late Animation<Offset> _taglineSlide;
+
+  @override
+  void initState() {
+    super.initState();
+    SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
+      statusBarColor: Colors.transparent,
+      statusBarIconBrightness: Brightness.light,
+    ));
+
+    _logoController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1400),
+    );
+
+    _fadeController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 800),
+    );
+
+    _pulseController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1800),
+    )..repeat(reverse: true);
+
+    _taglineController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 700),
+    );
+
+    _logoScale = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _logoController, curve: Curves.elasticOut),
+    );
+
+    _logoRotate = Tween<double>(begin: -0.3, end: 0.0).animate(
+      CurvedAnimation(parent: _logoController, curve: Curves.easeOut),
+    );
+
+    _logoOpacity = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _logoController,
+        curve: const Interval(0.0, 0.4, curve: Curves.easeIn),
+      ),
+    );
+
+    _bgFade = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _fadeController, curve: Curves.easeIn),
+    );
+
+    _pulse = Tween<double>(begin: 1.0, end: 1.08).animate(
+      CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
+    );
+
+    _taglineFade = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _taglineController, curve: Curves.easeIn),
+    );
+
+    _taglineSlide = Tween<Offset>(
+      begin: const Offset(0, 0.5),
+      end: Offset.zero,
+    ).animate(
+      CurvedAnimation(parent: _taglineController, curve: Curves.easeOut),
+    );
+
+    _startAnimations();
+  }
+
+  void _startAnimations() async {
+    await Future.delayed(const Duration(milliseconds: 300));
+    _fadeController.forward();
+    await Future.delayed(const Duration(milliseconds: 200));
+    _logoController.forward();
+    await Future.delayed(const Duration(milliseconds: 900));
+    _taglineController.forward();
+  }
+
+  @override
+  void dispose() {
+    _logoController.dispose();
+    _fadeController.dispose();
+    _pulseController.dispose();
+    _taglineController.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
     return Scaffold(
-      appBar: AppBar(
-        // TRY THIS: Try changing the color here to a specific color (to
-        // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
-        // change color while the other colors stay the same.
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
-      ),
-      body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-        child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          //
-          // TRY THIS: Invoke "debug painting" (choose the "Toggle Debug Paint"
-          // action in the IDE, or press "p" in the console), to see the
-          // wireframe for each widget.
-          mainAxisAlignment: .center,
-          children: [
-            const Text('You have pushed the button this many times:'),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
-            ),
-          ],
-        ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
+      backgroundColor: const Color(0xFF0A0A0E),
+      body: AnimatedBuilder(
+        animation: Listenable.merge([
+          _logoController,
+          _fadeController,
+          _pulseController,
+          _taglineController,
+        ]),
+        builder: (context, child) {
+          return Stack(
+            children: [
+              // Background glow
+              Opacity(
+                opacity: _bgFade.value,
+                child: Center(
+                  child: Container(
+                    width: 300,
+                    height: 300,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      gradient: RadialGradient(
+                        colors: [
+                          const Color(0xFFE8C547).withOpacity(0.08),
+                          Colors.transparent,
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+
+              // Main content
+              Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    // Logo
+                    Opacity(
+                      opacity: _logoOpacity.value,
+                      child: Transform.scale(
+                        scale: _logoScale.value * _pulse.value,
+                        child: Transform.rotate(
+                          angle: _logoRotate.value,
+                          child: const SurpriceLogo(size: 100),
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(height: 28),
+
+                    // App name
+                    Opacity(
+                      opacity: _logoOpacity.value,
+                      child: Transform.scale(
+                        scale: _logoScale.value,
+                        child: const Text(
+                          'Surprice',
+                          style: TextStyle(
+                            fontSize: 36,
+                            fontWeight: FontWeight.w500,
+                            color: Color(0xFFE8E0CC),
+                            letterSpacing: -0.5,
+                          ),
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(height: 10),
+
+                    // Tagline
+                    SlideTransition(
+                      position: _taglineSlide,
+                      child: FadeTransition(
+                        opacity: _taglineFade,
+                        child: const Text(
+                          'Every deal. Exposed.',
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: Color(0xFFE8C547),
+                            letterSpacing: 1.5,
+                            fontWeight: FontWeight.w400,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              // Bottom version
+              Positioned(
+                bottom: 48,
+                left: 0,
+                right: 0,
+                child: FadeTransition(
+                  opacity: _taglineFade,
+                  child: const Text(
+                    'v1.0.0',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: Color(0xFF2a2a36),
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          );
+        },
       ),
     );
   }
+}
+
+class SurpriceLogo extends StatelessWidget {
+  final double size;
+  const SurpriceLogo({super.key, required this.size});
+
+  @override
+  Widget build(BuildContext context) {
+    return CustomPaint(
+      size: Size(size, size),
+      painter: LogoPainter(),
+    );
+  }
+}
+
+class LogoPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final cx = size.width / 2;
+    final cy = size.height / 2;
+    final r = size.width * 0.44;
+
+    final points = List.generate(6, (i) {
+      final angle = math.pi / 180 * (60 * i - 90);
+      return Offset(cx + r * math.cos(angle), cy + r * math.sin(angle));
+    });
+
+    final hexPath = Path()..moveTo(points[0].dx, points[0].dy);
+    for (var p in points.skip(1)) {
+      hexPath.lineTo(p.dx, p.dy);
+    }
+    hexPath.close();
+
+    // Glow
+    canvas.drawPath(hexPath, Paint()
+      ..color = const Color(0xFFE8C547).withOpacity(0.15)
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 12));
+
+    // Hex outline
+    canvas.drawPath(hexPath, Paint()
+      ..color = const Color(0xFFE8C547)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.5);
+
+    // Inner lines
+    final linePaint = Paint()
+      ..color = const Color(0xFFE8C547).withOpacity(0.3)
+      ..strokeWidth = 0.8;
+    canvas.drawLine(points[0], points[3], linePaint);
+    canvas.drawLine(points[1], points[4], linePaint);
+    canvas.drawLine(points[2], points[5], linePaint);
+
+    // Lightning bolt
+    final bs = size.width * 0.15;
+    final bolt = Path()
+      ..moveTo(cx + bs * 0.6, cy - bs * 1.2)
+      ..lineTo(cx - bs * 0.3, cy + bs * 0.1)
+      ..lineTo(cx + bs * 0.15, cy + bs * 0.1)
+      ..lineTo(cx - bs * 0.6, cy + bs * 1.2)
+      ..lineTo(cx + bs * 0.3, cy - bs * 0.1)
+      ..lineTo(cx - bs * 0.15, cy - bs * 0.1)
+      ..close();
+    canvas.drawPath(bolt, Paint()..color = const Color(0xFFE8C547));
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
